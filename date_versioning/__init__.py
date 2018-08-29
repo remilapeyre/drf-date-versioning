@@ -98,7 +98,7 @@ class AddField:
         return payload
 
 
-class VersionnedSerializer(serializers.Serializer):
+class VersionedSerializer(serializers.Serializer):
     @property
     def versions(self):
         if self.version is None:
@@ -109,7 +109,7 @@ class VersionnedSerializer(serializers.Serializer):
 
         return {
             name: v for name, v in versions.items()
-            if name >= self.version
+            if name > self.version
         }
 
     @property
@@ -157,7 +157,7 @@ class VersionnedSerializer(serializers.Serializer):
         return self._data
 
     def get_fields(self):
-        fields = super(VersionnedSerializer, self).get_fields()
+        fields = super(VersionedSerializer, self).get_fields()
 
         for v in self.versions.values():
             fields = v.downgrade(fields=fields)[0]

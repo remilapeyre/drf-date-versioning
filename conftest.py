@@ -30,7 +30,7 @@ def pytest_configure():
             'django.contrib.messages',
             'django.contrib.staticfiles',
 
-            'date_versionning',
+            'date_versioning',
             'rest_framework',
             'rest_framework.authtoken',
         ),

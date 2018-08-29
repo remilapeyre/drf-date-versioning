@@ -18,7 +18,7 @@ class SimpleSerializer(serializers.Serializer):
 
 
 class TestDetermineVersion:
-    def test_no_versionning(self, rf):
+    def test_no_versioning(self, rf):
         request = rf.get('/')
         assert DateHeaderVersioning().determine_version(request) == datetime.now().strftime(r'%Y-%m-%d')
 
