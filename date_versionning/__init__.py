@@ -12,7 +12,7 @@ class DateHeaderVersioning(BaseVersioning):
 
     def determine_version(self, request, *args, **kwargs):
         try:
-            version = request.META['X-Version']
+            version = request.META['HTTP_X_VERSION']
         except KeyError:
             return datetime.now().strftime(r'%Y-%m-%d')
 
