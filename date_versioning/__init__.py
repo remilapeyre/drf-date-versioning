@@ -98,6 +98,25 @@ class AddField:
         return payload
 
 
+class ChangeField:
+    def __init__(self, name, field, new_field):
+        self.name = name
+        self.field = field
+        self.new_field = new_field
+
+    def downgrade(self, fields=None, payload=None):
+        if fields is not None:
+            fields[self.name] = copy.deepcopy(self.field)
+        if payload is not None:
+            payload[self.name] = self.field.to_representation(payload[self.name])
+        return fields, payload
+
+    def update(self, payload=None):
+        if payload is not None:
+            payload[self.name] = self.new_field.to_representation(payload[self.name])
+        return payload
+
+
 class VersionedSerializer(serializers.Serializer):
     @property
     def versions(self):
