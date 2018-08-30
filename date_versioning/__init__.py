@@ -148,7 +148,11 @@ class VersionedSerializer(serializers.Serializer):
                 # version to serialize the instance and the downgrade the result
                 data = self.__class__().to_representation(self.instance)
                 for v in self.versions.values():
-                    data = v.downgrade(payload=data)[1]
+                    if type(v) is tuple:
+                        for elem in v:
+                            data = elem.downgrade(payload=data)[1]
+                    else:
+                        data = v.downgrade(payload=data)[1]
                 self._data = data
             elif hasattr(self, '_validated_data') and not getattr(self, '_errors', None):
                 self._data = self.to_representation(self.validated_data)
@@ -160,6 +164,10 @@ class VersionedSerializer(serializers.Serializer):
         fields = super(VersionedSerializer, self).get_fields()
 
         for v in self.versions.values():
-            fields = v.downgrade(fields=fields)[0]
+            if type(v) is tuple:
+                for elem in v:
+                    fields = elem.downgrade(fields=fields)[0]
+            else:
+                fields = v.downgrade(fields=fields)[0]
 
         return fields
