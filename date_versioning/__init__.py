@@ -5,6 +5,7 @@ from rest_framework.versioning import BaseVersioning
 from rest_framework import exceptions, serializers
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.fields import empty
+from rest_framework.utils.serializer_helpers import ReturnDict
 
 
 class DateHeaderVersioning(BaseVersioning):
@@ -166,27 +167,27 @@ class VersionedSerializer(serializers.Serializer):
                 # We instanciate a serializer with the same fields but at the latest
                 # version to serialize the instance and the downgrade the result
                 data = self.__class__().to_representation(self.instance)
-                for v in self.versions.values():
-                    if type(v) is tuple:
-                        for elem in v:
-                            data = elem.downgrade(payload=data)[1]
-                    else:
-                        data = v.downgrade(payload=data)[1]
+                for version in self.versions.values():
+                    try:
+                        for v in version:
+                            data = v.downgrade(payload=data)[1]
+                    except TypeError:
+                        data = version.downgrade(payload=data)[1]
                 self._data = data
             elif hasattr(self, '_validated_data') and not getattr(self, '_errors', None):
                 self._data = self.to_representation(self.validated_data)
             else:
                 self._data = self.get_initial()
-        return self._data
+        return ReturnDict(self._data, serializer=self)
 
     def get_fields(self):
         fields = super(VersionedSerializer, self).get_fields()
 
-        for v in self.versions.values():
-            if type(v) is tuple:
-                for elem in v:
-                    fields = elem.downgrade(fields=fields)[0]
-            else:
-                fields = v.downgrade(fields=fields)[0]
+        for version in self.versions.values():
+            try:
+                for v in version:
+                    fields = v.downgrade(fields=fields)[0]
+            except TypeError:
+                fields = version.downgrade(fields=fields)[0]
 
         return fields
