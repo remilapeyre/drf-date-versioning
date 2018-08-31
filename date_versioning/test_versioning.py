@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from . import (DateHeaderVersioning, APIChange, RemoveField, RenameField, AddField,
-               VersionnedSerializer)
+               VersionedSerializer)
 
 
 class SimpleSerializer(serializers.Serializer):
@@ -23,12 +23,12 @@ class TestDetermineVersion:
         assert DateHeaderVersioning().determine_version(request) == datetime.now().strftime(r'%Y-%m-%d')
 
     def test_invalid_version(self, rf):
-        request = rf.get('/', **{'X-Version': 'this is invalid'})
+        request = rf.get('/', **{'HTTP_X_VERSION': 'this is invalid'})
         with pytest.raises(rest_framework.exceptions.NotAcceptable):
             DateHeaderVersioning().determine_version(request)
 
     def test_valid_version(self, rf):
-        request = rf.get('/', **{'X-Version': '2018-08-03'})
+        request = rf.get('/', **{'HTTP_X_VERSION': '2018-08-03'})
         assert DateHeaderVersioning().determine_version(request) == '2018-08-03'
 
 
@@ -48,7 +48,7 @@ class TestOperations:
 
     def test_no_op(self):
         change = APIChange()
-        previous_payload = change.downgrade(self.chewby)
+        previous_payload = change.downgrade(payload=self.chewby)
         assert previous_payload == self.chewby
         assert change.update(previous_payload) == self.chewby
 
@@ -128,11 +128,11 @@ instance = {
         }
     }
 
-class HomeworldSerializer(VersionnedSerializer):
+class HomeworldSerializer(VersionedSerializer):
     name = serializers.CharField()
 
 
-class PersonSerializer(VersionnedSerializer):
+class PersonSerializer(VersionedSerializer):
     name = serializers.CharField()
     birthYear = serializers.CharField()
     eyeColor = serializers.CharField()
@@ -157,7 +157,7 @@ class VersionView(APIView):
         return Response({'version': request.version})
 
 
-class TestVersionnedSerializer:
+class TestVersionedSerializer:
     def test_without_context(self):
         assert repr(PersonSerializer()) == dedent("""\
         PersonSerializer():
@@ -244,7 +244,7 @@ class TestVersionnedSerializer:
             data={
                 "name": "Chewbacca",
                 "birthYear": "200BBY",
-                "iColor": "blue",
+                "eyeColor": "blue",
                 "gender": "male",
                 "hairColor": "brown",
                 "hairStyle": "fluffy",
@@ -260,7 +260,7 @@ class TestVersionnedSerializer:
         assert serializer.data == {
             "name": "Chewbacca",
             "birthYear": "200BBY",
-            "iColor": "blue",
+            "eyeColor": "blue",
             "gender": "male",
             "hairColor": "brown",
             "hairStyle": "fluffy",
