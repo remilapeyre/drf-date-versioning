@@ -9,7 +9,7 @@ from rest_framework import serializers
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from . import (DateHeaderVersioning, APIChange, RemoveField, RenameField, AddField,
-               VersionedSerializer)
+               ChangeField, VersionedSerializer)
 
 
 class SimpleSerializer(serializers.Serializer):
@@ -114,6 +114,24 @@ class TestOperations:
 
         assert change.downgrade(payload=next_payload)[1] == self.chewby
 
+    def test_change_field(self):
+        change = ChangeField('height', serializers.IntegerField(), serializers.CharField())
+        next_payload = change.update(payload=self.chewby)
+        assert next_payload == {
+            "name": "Chewbacca",
+            "birthYear": "200BBY",
+            "eyeColor": "blue",
+            "gender": "male",
+            "hairColor": "brown",
+            "height": "228",
+            "mass": 112,
+            "homeworld": {
+                "name": "Kashyyyk"
+            }
+        }
+
+        assert change.downgrade(payload=next_payload)[1] == self.chewby
+
 
 instance = {
         "name": "Chewbacca",
@@ -144,7 +162,8 @@ class PersonSerializer(VersionedSerializer):
 
     class Meta:
         versions = {
-            '2018-08-02': RemoveField('hairStyle', serializers.CharField()),
+            '2018-08-02': (RemoveField('hairStyle', serializers.CharField()),
+                           ChangeField('height', serializers.CharField(), serializers.IntegerField())),
             '2018-07-29': RenameField('iColor', 'eyeColor'),
             '2018-07-27': AddField('gender', serializers.CharField(), default='male')
         }
@@ -200,7 +219,7 @@ class TestVersionedSerializer:
             eyeColor = CharField()
             gender = CharField()
             hairColor = CharField()
-            height = IntegerField()
+            height = CharField()
             mass = IntegerField()
             homeworld = HomeworldSerializer():
                 name = CharField()
@@ -216,7 +235,7 @@ class TestVersionedSerializer:
             "gender": "male",
             "hairColor": "brown",
             "hairStyle": "fluffy",
-            "height": 228,
+            "height": "228",
             "mass": 112,
             "homeworld": {
                 "name": "Kashyyyk"
@@ -248,7 +267,7 @@ class TestVersionedSerializer:
                 "gender": "male",
                 "hairColor": "brown",
                 "hairStyle": "fluffy",
-                "height": 228,
+                "height": "228",
                 "mass": 112,
                 "homeworld": {
                     "name": "Kashyyyk"
@@ -264,7 +283,7 @@ class TestVersionedSerializer:
             "gender": "male",
             "hairColor": "brown",
             "hairStyle": "fluffy",
-            "height": 228,
+            "height": "228",
             "mass": 112,
             "homeworld": {
                 "name": "Kashyyyk"
@@ -293,7 +312,7 @@ class TestVersionedSerializer:
                 "iColor": "blue",
                 "hairColor": "brown",
                 "hairStyle": "fluffy",
-                "height": 228,
+                "height": "228",
                 "mass": 112,
                 "homeworld": {
                     "name": "Kashyyyk"
@@ -308,7 +327,7 @@ class TestVersionedSerializer:
             "iColor": "blue",
             "hairColor": "brown",
             "hairStyle": "fluffy",
-            "height": 228,
+            "height": "228",
             "mass": 112,
             "homeworld": {
                 "name": "Kashyyyk"

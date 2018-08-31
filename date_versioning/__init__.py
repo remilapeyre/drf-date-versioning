@@ -144,8 +144,12 @@ class VersionedSerializer(serializers.Serializer):
     def updated_data(self):
         data = copy.deepcopy(self.data)
 
-        for v in reversed(list(self.versions.values())):
-            data = v.update(payload=data)
+        for version in reversed(list(self.versions.values())):
+            try:
+                for v in version:
+                    data = v.update(payload=data)
+            except TypeError:
+                data = version.update(payload=data)
 
         return data
 
