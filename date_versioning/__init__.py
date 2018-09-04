@@ -109,11 +109,13 @@ class ChangeField:
         if fields is not None:
             fields[self.name] = copy.deepcopy(self.field)
         if payload is not None:
-            payload[self.name] = self.field.to_representation(payload[self.name])
+            obj = self.new_field.to_internal_value(payload[self.name])
+            payload[self.name] = self.field.to_representation(obj)
         return fields, payload
 
     def update(self, payload=None):
         if payload is not None:
+            obj = self.new_field.to_internal_value(payload[self.name])
             payload[self.name] = self.new_field.to_representation(payload[self.name])
         return payload
 
