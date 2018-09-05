@@ -179,6 +179,12 @@ class VersionedSerializer(serializers.Serializer):
                             data = v.downgrade(payload=data)[1]
                     except TypeError:
                         data = version.downgrade(payload=data)[1]
+                # Now check for Nested Versioned Serializer
+                for key in data.keys():
+                    if isinstance(getattr(self, key, None), VersionedSerializer):
+                        serializer = getattr(self, key)
+                        serializer.version = self.version
+                        data[key] = serializer.data
                 self._data = data
             elif hasattr(self, '_validated_data') and not getattr(self, '_errors', None):
                 self._data = self.to_representation(self.validated_data)
