@@ -140,7 +140,11 @@ class VersionedSerializer(serializers.Serializer):
             request = self._context['request']
             return request.version
         except (KeyError, AttributeError):
-            return None
+            try:
+                request = self.context['request']
+                return request.version
+            except (KeyError, AttributeError):
+                return None
 
     @property
     def updated_data(self):
